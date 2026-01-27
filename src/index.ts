@@ -1,5 +1,6 @@
 import express from 'express';
 import helmet from 'helmet';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
 
@@ -14,7 +15,10 @@ const PORT = process.env.PORT || 3003;
 
 // Middlewares
 app.use(helmet());
-// CORS géré par nginx
+app.use(cors({
+  origin: process.env.CORS_ORIGINS?.split(',') || '*',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
