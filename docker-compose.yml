@@ -1,0 +1,64 @@
+services:
+  # ===========================================
+  # Base de données PostgreSQL pour Booth
+  # ===========================================
+  postgres:
+    image: postgres:16
+    container_name: konitys-booth-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-booth}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-booth_dev_2024}
+      POSTGRES_DB: ${DB_NAME:-booth}
+    ports:
+      - "54322:5432"
+    volumes:
+      - postgres_booth_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - booth-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-booth}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # API Booth
+  # ===========================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: konitys-api-booth
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-booth}
+      DB_PASSWORD: ${DB_PASSWORD:-booth_dev_2024}
+      DB_NAME: ${DB_NAME:-booth}
+      KEYCLOAK_URL: http://konitys-keycloak:8080
+      KEYCLOAK_PUBLIC_URL: http://auth.konitys.fr
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-konitys}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-konitys-api}
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://konitys:rabbitmq_dev_2024@konitys-rabbitmq:5672}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - booth-network
+      - konitys-network
+    restart: unless-stopped
+
+networks:
+  booth-network:
+    driver: bridge
+  konitys-network:
+    external: true
+    name: konitys-infrastructure_konitys-network
+
+volumes:
+  postgres_booth_data:
