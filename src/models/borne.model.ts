@@ -1,12 +1,4 @@
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  user: process.env.DB_USER || 'booth',
-  password: process.env.DB_PASSWORD || 'booth_dev_2024',
-  database: process.env.DB_NAME || 'booth',
-});
+import pool from '../config/database';
 
 export interface Borne {
   id: number;

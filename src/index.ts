@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import borneRoutes from './routes/borne.routes';
 import { connectRabbitMQ, closeRabbitMQ } from './services/rabbitmq.service';
 import { initWebSocket, closeWebSocket } from './services/websocket.service';
+import { initDatabase } from './config/database';
 
 dotenv.config();
 
@@ -53,6 +54,9 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 async function start() {
   try {
+    // Initialiser la base de données
+    await initDatabase();
+
     // Créer le serveur HTTP
     const server = createServer(app);
 
